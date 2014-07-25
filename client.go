@@ -16,6 +16,8 @@ const (
 
 // See https://developers.google.com/closure/compiler/docs/api-ref for details about the options
 type Client struct {
+	// Specify http client, defaults to http.DefaultClient
+	HTTPClient *http.Client
 
 	// Possible values: ECMASCRIPT3, ECMASCRIPT5, ECMASCRIPT5_STRICT, default to ECMASCRIPT5_STRICT
 	Language string
@@ -115,10 +117,13 @@ func (client *Client) buildRequest(jsCode []byte) *http.Request {
 
 func (client *Client) Compile(jsCode []byte) *Output {
 
-	httpClient := http.Client{}
+	//Lazy initialize http client for backward compatibility.
+	if client.HTTPClient == nil {
+		client.HTTPClient = http.DefaultClient
+	}
 
 	req := client.buildRequest(jsCode)
-	res, err := httpClient.Do(req)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
